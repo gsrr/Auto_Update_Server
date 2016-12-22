@@ -10,7 +10,7 @@ api = Api(app)
 
 def write_config(nasip, module):
 	keys = ["[nasip]"]
-	with open("update.%s.config"%module, "r") as fr:
+	with open("config/update.%s.config"%module, "r") as fr:
 		lines = fr.readlines()
 		with open("update.config", "w") as fw:
 			for line in lines:
@@ -23,6 +23,20 @@ def write_config(nasip, module):
 def update_client():
 	subprocess.call("python update.py", shell=True)
 
+@app.route('/autotest', methods=['POST'])
+def autotest():
+    #print request.form
+    cmd = "/usr/bin/python /usr/local/NAS/misc/Cmd/NASCmd.py"
+    parser = reqparse.RequestParser()
+    parser.add_argument('module', type=str)
+    args = parser.parse_args()
+    print args
+    cmd += " -f /usr/local/NAS/misc/Cmd/Script/%s.txt"%args['module']
+    os.system(cmd)
+    return render_template(
+                    'update.html',
+           )
+
 @app.route('/update', methods=['POST'])
 def update():
     #print request.form
@@ -34,9 +48,11 @@ def update():
     args = parser.parse_args()
     print args
     #write_config(request.remote_addr)
-    write_config(args['nasip'], args['module'])
+    write_config(args['ip_dest'], args['module'])
     update_client()
-    return {'hello': 'world'}
+    return render_template(
+                    'update.html',
+           )
 
 #api.add_resource(HelloWorld, '/')
 def read_modules():
