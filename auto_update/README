@@ -1,6 +1,11 @@
 [Reference]
 https://blog.liang2.tw/posts/2015/09/flask-draw-member/#flask
 
+[Requirement]
+pip install flask
+pip install flask-restful
+yum install rsync
+
 Execution : python server.py
 
 [Browser]
@@ -8,4 +13,4 @@ http://172.27.112.138:5000/?nasip=172.27.113.235&module=rsyncd
 
 [curl]
 curl http://172.27.112.138:5000?nasip=172.27.113.157\&module=vim
-
+post --> curl -d "module=ldapserver" http://172.27.112.239:5000/autotest
