@@ -1,7 +1,7 @@
 #!/usr/bin/expect
 set timeout -1
 set arg1 [lindex $argv 0]
-spawn rsync -a --timeout=180 [from] root@[nasip]:[to]
+spawn rsync -a --timeout=180 -e "ssh -p [port]" [from] root@[nasip]:[to]
 match_max 100000
 expect {
 	"*?assword:*" {

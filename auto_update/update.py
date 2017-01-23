@@ -28,6 +28,8 @@ def createExp(info, f1, f2):
             for line in lines:
                 if "[nasip]" in line:
                     line = line.replace("[nasip]", info['nasip'])
+                if "[port]" in line:
+                    line = line.replace("[port]", info['port'])
                 if "[from]" in line:
                     line = line.replace("[from]", f1)
                 if "[to]" in line:
@@ -35,7 +37,6 @@ def createExp(info, f1, f2):
                 fw.write(line)
     return 0
     
-
 def main():
     data = readFile("update.config")
     info = parsefiles(data)

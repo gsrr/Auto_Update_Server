@@ -4,24 +4,51 @@ from flask_restful import Resource, Api, reqparse
 from flask import render_template
 import subprocess
 import os
+import time
+import sys
 
 app = Flask(__name__)
 api = Api(app)
 
-def write_config(nasip, module):
-	keys = ["[nasip]"]
-	with open("config/update.%s.config"%module, "r") as fr:
-		lines = fr.readlines()
-		with open("update.config", "w") as fw:
-			for line in lines:
-				line = line.strip()
-				for key in keys:
-					if key in line:
-						line = line.replace(key, nasip)
-				fw.write(line + "\n")
+def write_config(nasip, port, module):
+    paras = {
+        "[nasip]" : nasip, 
+        "[port]" : str(port),
+    }
+    with open("config/update.%s.config"%module, "r") as fr:
+        lines = fr.readlines()
+        with open("update.config", "w") as fw:
+            for line in lines:
+                line = line.strip()
+                for key in paras.keys():
+                    if key in line:
+                        line = line.replace(key, paras[key])
+                fw.write(line + "\n")
 
-def update_client():
-	subprocess.call("python update.py", shell=True)
+def openssh(ip, port):
+    try:
+        cmd = "nc %s %s"%(ip, str(port))
+        print cmd
+        proc = subprocess.Popen(cmd, shell = True, stdout = subprocess.PIPE)
+        time.sleep(0.5)
+        proc.kill()
+        data = proc.communicate()
+        if "OpenSSH" in data[0]:
+            print "ssh port:%s is open"%str(port)
+            return True
+        else:
+            print "ssh port:%s is close"%str(port)
+            return False
+    except:
+        return False
+
+def update_client(nasip = None):
+    if nasip == None:
+        subprocess.call("python update.py", shell = True)
+    else:
+        subprocess.call("expect tunnel.exp %s &"%nasip, shell = True)
+        subprocess.call("python update.py", shell = True)
+        subprocess.call("ps -ef | grep tunnel.exp | awk '{print $2}' | xargs kill -9", shell = True)
 
 @app.route('/autotest', methods=['POST'])
 def autotest():
@@ -48,8 +75,12 @@ def update():
     args = parser.parse_args()
     print args
     #write_config(request.remote_addr)
-    write_config(args['ip_dest'], args['module'])
-    update_client()
+    if openssh(args['ip_dest'], 22):
+        write_config(args['ip_dest'], 22, args['module'])
+        update_client()
+    if openssh("localhost", 5511):
+        write_config("localhost", 5511, args['module'])
+        update_client(args['ip_dest'])
     return render_template(
                     'update.html',
            )
@@ -68,5 +99,13 @@ def index():
                     modules = modules,
            )
 
-if __name__ == '__main__':
+def main():
    app.run(host="0.0.0.0")
+    
+def test_openssh():
+    print openssh("127.0.0.1", 22)
+    print openssh("127.0.0.1", 5511)
+
+if __name__ == '__main__':
+    func = getattr(sys.modules[__name__], sys.argv[1])
+    func()
