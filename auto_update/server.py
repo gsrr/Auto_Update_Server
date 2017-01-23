@@ -42,13 +42,16 @@ def openssh(ip, port):
     except:
         return False
 
-def update_client(nasip = None):
-    if nasip == None:
-        subprocess.call("python update.py", shell = True)
-    else:
-        subprocess.call("expect tunnel.exp %s &"%nasip, shell = True)
-        subprocess.call("python update.py", shell = True)
-        subprocess.call("ps -ef | grep tunnel.exp | awk '{print $2}' | xargs kill -9", shell = True)
+def update_client():
+    subprocess.call("python update.py", shell = True)
+
+def update_client_redund(nasip):
+    subprocess.call("ps -ef | grep tunnel.exp | awk '{print $2}' | xargs kill -9", shell = True)
+    subprocess.call("expect tunnel.exp %s &"%nasip, shell = True)
+    time.sleep(3)
+    if openssh("localhost", 5511):
+        update_client()
+    subprocess.call("ps -ef | grep tunnel.exp | awk '{print $2}' | xargs kill -9", shell = True)
 
 @app.route('/autotest', methods=['POST'])
 def autotest():
@@ -78,9 +81,8 @@ def update():
     if openssh(args['ip_dest'], 22):
         write_config(args['ip_dest'], 22, args['module'])
         update_client()
-    if openssh("localhost", 5511):
-        write_config("localhost", 5511, args['module'])
-        update_client(args['ip_dest'])
+    write_config("localhost", 5511, args['module'])
+    update_client_redund(args['ip_dest'])
     return render_template(
                     'update.html',
            )
