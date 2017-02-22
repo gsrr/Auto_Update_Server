@@ -1,7 +1,7 @@
 #!/usr/bin/expect
 set timeout -1
 set arg1 [lindex $argv 0]
-spawn rsync -a --timeout=180 -e "ssh -p 5511" /root/test root@localhost:/root/test
+spawn rsync -a --timeout=180 -e "ssh -p 22" /root/git/HA/NAS/misc/Cmd/Exec/Page/pagelist.py root@172.27.120.94:/usr/local/NAS/misc/Cmd/Exec/Page/pagelist.py
 match_max 100000
 expect {
 	"*?assword:*" {
