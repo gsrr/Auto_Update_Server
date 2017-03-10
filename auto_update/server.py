@@ -109,5 +109,8 @@ def test_openssh():
     print openssh("127.0.0.1", 5511)
 
 if __name__ == '__main__':
-    func = getattr(sys.modules[__name__], sys.argv[1])
-    func()
+    try:
+        func = getattr(sys.modules[__name__], sys.argv[1])
+        func()
+    except:
+        print "usage: python server.py main"

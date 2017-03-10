@@ -1,4 +1,5 @@
 import os
+import git
 
 def readFile(path):
     data = []
@@ -36,7 +37,27 @@ def createExp(info, f1, f2):
                     line = line.replace("[to]", f2)
                 fw.write(line)
     return 0
-    
+
+def pre_main():
+    repo = [
+        "/root/git/HA/",
+        "/root/git/ift-utils/"
+    ]
+    for r in repo:
+        g = git.cmd.Git(r)
+        g.pull()
+
+def post_main():
+    pass
+
+def decor_main(func):
+    def wrap_func():
+        pre_main()
+        func()
+        post_main()
+    return wrap_func
+
+@decor_main
 def main():
     data = readFile("update.config")
     info = parsefiles(data)
